@@ -1,0 +1,9 @@
+map_dataset/*
+map_dataset*
+model_results/*
+venv
+.vscode
+__pycache__
+*.pyc
+dataset/dataset_converter.py
+checkpoints/*
