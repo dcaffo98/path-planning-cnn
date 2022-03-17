@@ -1,5 +1,5 @@
 import os
-from random import random
+from random import random, choice
 from dataset.map_sample import MapSample
 from model.checkpoint import Checkpoint
 from torch.nn.modules.loss import MSELoss
@@ -101,6 +101,7 @@ def train(model, dataloader, loss, optimizer, epochs, device=DEVICE, save_every=
             Checkpoint.save(model, epoch, min_loss, optimizer, scheduler=None)
         avg_loss = 0.0
         n = 0
+        visualize_results(RESULTS_PATH)
 
 def update_loss_plot(eval_losses):
     plt.figure(1)
@@ -109,6 +110,18 @@ def update_loss_plot(eval_losses):
     plt.title('Validation loss')
     plt.plot(np.arange(len(eval_losses)), np.array(eval_losses), color='b')            
     plt.pause(0.01)
+
+def visualize_results(path):
+    files = [os.path.join(os.path.abspath(path), f) for f in os.listdir(path)]
+    if len(files) > 50:
+        to_delete = files[:50]
+        for file in to_delete:
+            os.remove(file)
+        files = files[50:]
+    plt.figure(2)
+    img = cv2.imread(choice(files))
+    plt.clf()
+    plt.imshow(img)
 
 def main(epochs=EPOCHS, device=DEVICE):
     if not os.path.exists(os.path.abspath('checkpoints')):
