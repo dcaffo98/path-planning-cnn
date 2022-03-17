@@ -19,7 +19,7 @@ TRAIN = 'map_dataset_test_of/train'
 VALIDATION = 'map_dataset_test_of/validation'
 EPOCHS = 100
 SAVE_EVERY = 5
-SHOW_EVERY = 100
+SHOW_EVERY = 1
 DEVICE = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 RESULTS_PATH = 'model_results'
 BATCH_SIZE = 32
@@ -67,8 +67,6 @@ def train(model, dataloader, loss, optimizer, epochs, device=DEVICE, save_every=
     avg_loss = 0.
     eval_loss = min_loss
     eval_losses = []
-    fig, ax = plt.subplots()
-    # plt.show()
     n = 0
     for epoch in range(epochs):
         model.train()
@@ -110,7 +108,7 @@ def update_loss_plot(eval_losses):
     plt.xlabel('Epochs')
     plt.title('Validation loss')
     plt.plot(np.arange(len(eval_losses)), np.array(eval_losses), color='b')            
-    plt.pause(0.001)
+    plt.pause(0.01)
 
 def main(epochs=EPOCHS, device=DEVICE):
     if not os.path.exists(os.path.abspath('checkpoints')):
