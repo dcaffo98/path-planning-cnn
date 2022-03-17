@@ -13,10 +13,10 @@ import cv2
 import numpy as np
 from threading import Thread
 from time import time
+from matplotlib import pyplot as plt
 
-
-TRAIN = 'map_dataset/train'
-VALIDATION = 'map_dataset/validation'
+TRAIN = 'map_dataset_test_of/train'
+VALIDATION = 'map_dataset_test_of/validation'
 EPOCHS = 100
 SAVE_EVERY = 5
 SHOW_EVERY = 100
@@ -66,6 +66,9 @@ def train(model, dataloader, loss, optimizer, epochs, device=DEVICE, save_every=
     cv2.startWindowThread()
     avg_loss = 0.
     eval_loss = min_loss
+    eval_losses = []
+    fig, ax = plt.subplots()
+    # plt.show()
     n = 0
     for epoch in range(epochs):
         model.train()
@@ -87,6 +90,8 @@ def train(model, dataloader, loss, optimizer, epochs, device=DEVICE, save_every=
         print("[Epoch {}]\n\tavg_loss: {}".format(epoch, avg_loss))
         if val_dataloader is not None:
             eval_loss = test(model, val_dataloader, loss, device, SHOW_EVERY)
+            eval_losses.append(eval_loss)
+            update_loss_plot(eval_losses)
             if type(scheduler) == torch.optim.lr_scheduler.ReduceLROnPlateau:
                 scheduler.step(eval_loss)
             print("\tvalidation avg_loss: {}".format(eval_loss))
@@ -98,6 +103,14 @@ def train(model, dataloader, loss, optimizer, epochs, device=DEVICE, save_every=
             Checkpoint.save(model, epoch, min_loss, optimizer, scheduler=None)
         avg_loss = 0.0
         n = 0
+
+def update_loss_plot(eval_losses):
+    plt.figure(1)
+    plt.clf()
+    plt.xlabel('Epochs')
+    plt.title('Validation loss')
+    plt.plot(np.arange(len(eval_losses)), np.array(eval_losses), color='b')            
+    plt.pause(0.001)
 
 def main(epochs=EPOCHS, device=DEVICE):
     if not os.path.exists(os.path.abspath('checkpoints')):
@@ -114,4 +127,5 @@ def main(epochs=EPOCHS, device=DEVICE):
     Checkpoint.save(model, EPOCHS, None, optimizer, scheduler=None)
 
 if __name__ == '__main__':
+    plt.ion()
     main()
