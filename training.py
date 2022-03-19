@@ -15,11 +15,11 @@ from threading import Thread
 from time import time
 from matplotlib import pyplot as plt
 
-TRAIN = 'map_dataset_test_of/train'
-VALIDATION = 'map_dataset_test_of/validation'
+TRAIN = 'map_dataset/train'
+VALIDATION = 'map_dataset/validation'
 EPOCHS = 100
 SAVE_EVERY = 5
-SHOW_EVERY = 1
+SHOW_EVERY = 100
 DEVICE = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 RESULTS_PATH = 'model_results'
 BATCH_SIZE = 32
@@ -62,13 +62,13 @@ def test(model, dataloader, loss=None, device=DEVICE, show_every=5):
     return avg_loss / n
 
 def train(model, dataloader, loss, optimizer, epochs, device=DEVICE, save_every=10, 
-        scheduler=None, min_loss=float('inf'), val_dataloader=None):
+        scheduler=None, min_loss=float('inf'), val_dataloader=None, start_epoch=0, checkpoint_path=None):
     cv2.startWindowThread()
     avg_loss = 0.
     eval_loss = min_loss
     eval_losses = []
     n = 0
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         model.train()
         for i, (map, start, goal, path) in enumerate(dataloader):
             if start.dtype != torch.long:
@@ -96,9 +96,9 @@ def train(model, dataloader, loss, optimizer, epochs, device=DEVICE, save_every=
             if eval_loss < min_loss:
                 print("\tNew min: {} (previous was {})".format(eval_loss, min_loss))
                 min_loss = eval_loss
-                Checkpoint.save(model, epoch, min_loss, optimizer, scheduler=None, path="checkpoints/checkpoint_new_min_{}.pt".format(epoch))
+                Checkpoint.save(model, epoch, min_loss, optimizer, scheduler=scheduler, path=os.path.join(checkpoint_path, "checkpoint_new_min_{}.pt".format(epoch)))
         if epoch > 0 and epoch % save_every == 0:
-            Checkpoint.save(model, epoch, min_loss, optimizer, scheduler=None)
+            Checkpoint.save(model, epoch, min_loss, optimizer, scheduler=scheduler, path=os.path.join(checkpoint_path, "checkpoint_{}.pt".format(epoch)))
         avg_loss = 0.0
         n = 0
         visualize_results(RESULTS_PATH)
