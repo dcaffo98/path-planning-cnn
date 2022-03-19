@@ -119,7 +119,7 @@ class SPFNet(nn.Module):
             if i < len(skip_conn):
                 x = x + skip_conn[-1 - i]
         x = self.bottleneck(x)
-        x = self.pe_forward(x, start, goal)        
+        # x = self.pe_forward(x, start, goal)        
         x = self.conv_out(x)
         x = self.sigm(x)
         return x
