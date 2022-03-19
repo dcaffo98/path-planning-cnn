@@ -2,7 +2,7 @@ import os
 from random import random, choice
 from dataset.map_sample import MapSample
 from model.checkpoint import Checkpoint
-from torch.nn.modules.loss import MSELoss
+from torch.nn.modules.loss import MSELoss, L1Loss
 from dataset.map_dataset import MapDataset
 from model.model import SPFNet
 from dataset.utils import b_search, custom_collate_fn
@@ -22,7 +22,8 @@ SAVE_EVERY = 5
 SHOW_EVERY = 100
 DEVICE = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 RESULTS_PATH = 'model_results'
-BATCH_SIZE = 32
+CHECKPOINT_PATH = 'checkpoints'
+BATCH_SIZE = 48
 LR = 1e-3
 
 def save_model_result(map, model_out, start, goal, path):
@@ -131,10 +132,10 @@ def main(epochs=EPOCHS, device=DEVICE):
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, collate_fn=custom_collate_fn, pin_memory=True)
     val_dataset = MapDataset(VALIDATION)
     val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, collate_fn=custom_collate_fn, pin_memory=True)
-    loss = MSELoss().to(device)
+    loss = L1Loss().to(device)
     optimizer = Adam(model.parameters(), lr=LR)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=200)
-    train(model, dataloader, loss, optimizer, epochs, val_dataloader=val_dataloader, save_every=SAVE_EVERY, scheduler=scheduler)
+    train(model, dataloader, loss, optimizer, epochs, val_dataloader=val_dataloader, save_every=SAVE_EVERY, scheduler=scheduler, checkpoint_path=CHECKPOINT_PATH)
     Checkpoint.save(model, EPOCHS, None, optimizer, scheduler=None)
 
 if __name__ == '__main__':
