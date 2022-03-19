@@ -2,6 +2,7 @@ from torch.utils.data import Dataset
 import os
 from random import shuffle
 from dataset.map_sample import MapSample
+from dataset.utils import collect_files
 
 
 MAP_DS_PATH = 'map_dataset'
@@ -11,7 +12,7 @@ class MapDataset(Dataset):
     def __init__(self, datapath, lazy=True):
         super(MapDataset, self).__init__()
         datapath = os.path.abspath(datapath)
-        self.samples = [os.path.join(datapath, f) for f in os.scandir(datapath) if os.path.isfile(os.path.join(datapath, f))]
+        self.samples = list(collect_files(datapath))
         shuffle(self.samples)
         self._lazy = lazy
         if not lazy:
