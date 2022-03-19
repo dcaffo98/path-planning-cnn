@@ -3,6 +3,7 @@ import os
 import shutil
 import torch
 import numpy as np
+from shutil import move
 
 
 PATTERN = '.*(.+\.pt)$'
@@ -29,6 +30,33 @@ def move_data(datapath, train_p=0.6, val_p=0.1, test_p=0.3, train_name='train', 
         for f in splits[i]:
             shutil.move(os.path.join(datapath, f), os.path.join(dirpath, f))
 
+def chunk_data(datapath, chunk_size=1000):
+    datapath = os.path.abspath(datapath)
+    basename = 'data_'
+    chunks = []
+    chunk_count = 0
+    for entry in os.scandir(datapath):
+        if os.path.isfile(entry.path):
+            chunks.append(entry.name)
+        if len(chunks) == chunk_size:
+            dirname = basename + str(chunk_count)
+            os.mkdir(os.path.join(datapath, dirname))
+            for chunk in chunks:
+                move(os.path.join(datapath, chunk), os.path.join(datapath, dirname, chunk))
+            chunk_count += 1
+            chunks = []
+    dirname = basename + str(chunk_count)
+    os.mkdir(os.path.join(datapath, dirname))
+    for chunk in chunks:
+                move(os.path.join(datapath, chunk), os.path.join(datapath, dirname, chunk))            
+
+def collect_files(datapath):
+    for entry in os.scandir(os.path.abspath(datapath)):
+        if os.path.isfile(entry.path):
+            yield entry.path
+        elif os.path.isdir(entry.path):
+            for nested_entry in collect_files(entry.path):
+                yield nested_entry
 
 def custom_collate_fn(batch):
     maps = torch.stack([sample.map for sample in batch]).unsqueeze(1)
@@ -105,4 +133,9 @@ def b_search(map, start, goal, to_torch=True):
 
 
 if __name__ == '__main__':
-    move_data('map_dataset')
+    # move_data('map_dataset')
+    chunk_data('map_dataset/train')
+    files = []
+    for file in collect_files('map_dataset/train'):
+        files.append(file)
+    print(len(files))
