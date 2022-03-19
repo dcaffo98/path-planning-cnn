@@ -29,7 +29,7 @@ class Checkpoint(object):
     @staticmethod
     def load_checkpoint(path, model, optimizer=None, scheduler=None, device=None):
         if not device:
-            device = model.device
+            device = next(model.parameters()).device
         cp = torch.load(path, map_location=device)
         model.load_state_dict(cp['model'])
         if optimizer is not None:
@@ -49,5 +49,10 @@ class Checkpoint(object):
 
     
 if __name__ == '__main__':
-    Checkpoint.save(None, None, None, None, None, None, foo='qwerty', xxx=3)
+    # Checkpoint.save(None, None, None, None, None, None, foo='qwerty', xxx=3)
+    from model import SPFNet
+    from torch.optim import Adam
+    model = SPFNet().to('cuda:0')
+    optimizer = Adam(model.parameters())
+    Checkpoint.load_checkpoint('checkpoints/checkpoint_5.pt', model,optimizer)
         
