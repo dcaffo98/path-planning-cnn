@@ -4,7 +4,7 @@ from dataset.map_sample import MapSample
 from model.checkpoint import Checkpoint
 from torch.nn.modules.loss import MSELoss, L1Loss
 from dataset.map_dataset import MapDataset
-from model.model import SPFNet
+from model.spfnet import SPFNet
 from dataset.utils import b_search, custom_collate_fn
 import torch
 from torch.utils.data import DataLoader

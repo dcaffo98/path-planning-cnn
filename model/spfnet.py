@@ -1,26 +1,7 @@
 import torch
 from torch import nn
-import math
 from dataset.map_sample import MapSample
-
-class PositionalEncoding(nn.Module):
-
-    def __init__(self, max_h, max_w):
-        super(PositionalEncoding, self).__init__()
-        position = torch.arange(max_w).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, max_h, 2) * (-math.log(10000.0) / max_w))
-        pe = torch.zeros(1, 1, max_h, max_w)
-        pe[:, :, :, 0::2] = torch.sin(position * div_term)
-        pe[:, :, :, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
-
-    def forward(self, x):
-        """
-        Args:
-            x: Tensor, shape [N, C, H, W]
-        """
-        return x + self.pe[:, :, :x.size(2)]
-
+from model.pe import GaussianRelativePE, PositionalEncoding
 
 class SPFNet(nn.Module):
 
@@ -82,7 +63,7 @@ class SPFNet(nn.Module):
             def forward(self, x):
                 return self._fw(x)
         
-        self.pe = PositionalEncoding(100, 100)
+        self.pe = GaussianRelativePE(100)
         self.sigm = nn.Sigmoid()
         n_channels = [64 * (2 ** i) for i in range(n_layers)]
         self.conv_down = nn.ModuleList([_conv_block_down(c, c, is_first=True if i == 0 else False) for i, c in enumerate(n_channels)])
@@ -94,8 +75,8 @@ class SPFNet(nn.Module):
     def pe_forward(self, x, start, goal):
         zero_to_bsz = torch.arange(x.shape[0], dtype=torch.long, device=x.device)
         x[zero_to_bsz, :, start[:, 0], start[:, 1]] = x[zero_to_bsz, :, start[:, 0], start[:, 1]] + self.embd(torch.tensor([0], dtype=torch.long, device=x.device))
-        x[zero_to_bsz, :, goal[:, 0], goal[:, 1]] = x[zero_to_bsz, :, goal[:, 0], goal[:, 1]] + self.embd(torch.tensor([1], dtype=torch.long, device=x.device))
-        return self.pe(x)
+        # x[zero_to_bsz, :, goal[:, 0], goal[:, 1]] = x[zero_to_bsz, :, goal[:, 0], goal[:, 1]] + self.embd(torch.tensor([1], dtype=torch.long, device=x.device))
+        return self.pe(x, goal)
 
     def forward(self, x, start, goal):
         """Forward pass
@@ -127,7 +108,7 @@ class SPFNet(nn.Module):
 
 if __name__ == '__main__':
     model = SPFNet(3)
-    path = 'map_dataset/4f5ba4af-f89a-4ac4-a0e7-7d3acff3d2eb.pt'
+    path = 'map_dataset/validation/0a2ae4a1-72e8-4daf-9b29-dcd6a24b5af6.pt'
     sample = MapSample.load(path)
     import cv2
     map = sample.bgr_map()
