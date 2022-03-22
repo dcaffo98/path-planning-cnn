@@ -1,11 +1,12 @@
 import torch
 from torch import nn
 from dataset.map_sample import MapSample
+from img_processing.gaussian_kernel import get_gaussian
 from model.pe import GaussianRelativePE, PositionalEncoding
 
 class SPFNet(nn.Module):
 
-    def __init__(self, n_layers=3):
+    def __init__(self, n_layers=3, gaussian_blur_kernel=0):
         super(SPFNet, self).__init__()
         
         class _conv_block_down(nn.Module):
@@ -63,6 +64,13 @@ class SPFNet(nn.Module):
             def forward(self, x):
                 return self._fw(x)
         
+        self.gaussian_blur_kernel= gaussian_blur_kernel
+        if gaussian_blur_kernel > 0:
+            gaussian_kernel = torch.tensor(get_gaussian(gaussian_blur_kernel, sigma=0, normalized=True), dtype=torch.float32).view(1, 1, gaussian_blur_kernel, gaussian_blur_kernel)
+            self.blur = nn.Conv2d(1, 1, gaussian_blur_kernel, padding=gaussian_blur_kernel // 2, bias=False)
+            self.blur.weight.data = gaussian_kernel
+        else:
+            self.blur = None
         self.pe = GaussianRelativePE(100)
         self.sigm = nn.Sigmoid()
         n_channels = [64 * (2 ** i) for i in range(n_layers)]
@@ -89,6 +97,9 @@ class SPFNet(nn.Module):
         Returns:
             Tensor: score map. Score of a pixel should be proportional to the probability of belonging to the shortest path.
         """
+        if self.gaussian_blur_kernel > 0:
+            with torch.no_grad():
+                x = self.blur(x)
         skip_conn = []
         x = self.pe_forward(x, start, goal)
         for i, conv in enumerate(self.conv_down):

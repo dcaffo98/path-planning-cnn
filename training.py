@@ -127,7 +127,7 @@ def visualize_results(path):
 def main(epochs=EPOCHS, device=DEVICE):
     if not os.path.exists(os.path.abspath('checkpoints')):
         os.mkdir(os.path.abspath('checkpoints'))
-    model = SPFNet().to(device)
+    model = SPFNet(gaussian_blur_kernel=3).to(device)
     dataset = MapDataset(TRAIN)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, collate_fn=custom_collate_fn, pin_memory=True)
     val_dataset = MapDataset(VALIDATION)
