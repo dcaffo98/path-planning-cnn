@@ -14,6 +14,8 @@ import numpy as np
 from threading import Thread
 from time import time
 from matplotlib import pyplot as plt
+from lr_scheduler.scheduler import CosineAnnealingWarmRestartsDecay
+
 
 TRAIN = 'map_dataset/train'
 VALIDATION = 'map_dataset/validation'
@@ -134,7 +136,8 @@ def main(epochs=EPOCHS, device=DEVICE):
     val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, collate_fn=custom_collate_fn, pin_memory=True)
     loss = L1Loss().to(device)
     optimizer = Adam(model.parameters(), lr=LR)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=200)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=200)
+    scheduler = CosineAnnealingWarmRestartsDecay(optimizer, T_0=150, decay=0.995)
     train(model, dataloader, loss, optimizer, epochs, val_dataloader=val_dataloader, save_every=SAVE_EVERY, scheduler=scheduler, checkpoint_path=CHECKPOINT_PATH)
     Checkpoint.save(model, EPOCHS, None, optimizer, scheduler=None)
 
