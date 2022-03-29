@@ -22,9 +22,11 @@ class PositionalEncoding(nn.Module):
 
         
 class GaussianRelativePE(nn.Module):
-    def __init__(self, side):
+    def __init__(self, side, sigma=None):
         super().__init__()
-        self.sigma_square = (side / 5) ** 2
+        if sigma is None:
+            sigma = (side / 5)
+        self.sigma_square = sigma ** 2
         self.alpha = 1 / (2 * math.pi * self.sigma_square)
         self.side = side
         coord_r = torch.stack([torch.arange(side) for _ in range(side)])
@@ -35,7 +37,7 @@ class GaussianRelativePE(nn.Module):
     def forward(self, x, center):
         pe = self.alpha * torch.exp(- ((self.coord_r.view(1, self.side, self.side) - center[:, 0:1].unsqueeze(1)) ** 2 + \
             (self.coord_c.view(1, self.side, self.side) - center[:, 1:2].unsqueeze(1)) ** 2) / (2 * self.sigma_square))
-        pe /= pe.sum(dim=(-1, -2)).view(-1, 1, 1)
+        pe /= pe.amax(dim=(-1, -2)).view(-1, 1, 1)
         return x + pe.unsqueeze(1)
 
 
