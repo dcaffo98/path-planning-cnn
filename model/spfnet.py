@@ -10,14 +10,14 @@ class SPFNet(nn.Module):
         super(SPFNet, self).__init__()
         
         class _conv_block_down(nn.Module):
-            def __init__(self, in_channels, out_channels, activation=None, norm_first=False, is_first=False):
+            def __init__(self, in_channels, out_channels, activation=None, norm_first=False, is_first=False, init_in_channel=1):
                 super(_conv_block_down, self).__init__()
                 self.activation = activation if activation is not None else nn.ReLU()
                 self.bn1 = nn.BatchNorm2d(out_channels)
                 self.bn2 = nn.BatchNorm2d(out_channels)
                 self.bn3 = nn.BatchNorm2d(out_channels * 2)
                 if is_first:
-                    self.conv1 = nn.Conv2d(1, out_channels, 3)
+                    self.conv1 = nn.Conv2d(init_in_channel, out_channels, 3)
                 else:
                     self.conv1 = nn.Conv2d(in_channels, out_channels, 3)
                 self.conv2 = nn.Conv2d(in_channels, out_channels, 3)
@@ -74,17 +74,16 @@ class SPFNet(nn.Module):
         self.pe = GaussianRelativePE(100)
         self.sigm = nn.Sigmoid()
         n_channels = [64 * (2 ** i) for i in range(n_layers)]
-        self.conv_down = nn.ModuleList([_conv_block_down(c, c, is_first=True if i == 0 else False) for i, c in enumerate(n_channels)])
+        self.conv_down = nn.ModuleList([_conv_block_down(c, c, is_first=True if i == 0 else False, init_in_channel=3) for i, c in enumerate(n_channels)])
         self.conv_up = nn.ModuleList([_conv_block_up(2 * c, 2 * c, is_last=True if i == len(n_channels) - 1 else False) for i, c in enumerate(n_channels[::-1])])
         self.bottleneck = nn.Conv2d(64, 1, 3, padding=1)
-        self.conv_out = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
-        self.embd = nn.Embedding(2, 1)  # 0 -> start; 1 -> goal
+        self.conv_out = nn.Conv2d(1, 1, kernel_size=3, padding=1)
 
     def pe_forward(self, x, start, goal):
-        zero_to_bsz = torch.arange(x.shape[0], dtype=torch.long, device=x.device)
-        x[zero_to_bsz, :, start[:, 0], start[:, 1]] = x[zero_to_bsz, :, start[:, 0], start[:, 1]] + self.embd(torch.tensor([0], dtype=torch.long, device=x.device))
-        # x[zero_to_bsz, :, goal[:, 0], goal[:, 1]] = x[zero_to_bsz, :, goal[:, 0], goal[:, 1]] + self.embd(torch.tensor([1], dtype=torch.long, device=x.device))
-        return self.pe(x, goal)
+        zeros = torch.zeros_like(x, device=x.device, dtype=x.dtype)
+        pe_start = self.pe(zeros, start)
+        pe_goal = self.pe(zeros, goal)
+        return torch.cat([x, pe_start, pe_goal], dim=1)
 
     def forward(self, x, start, goal):
         """Forward pass
