@@ -8,7 +8,7 @@ from shutil import move
 
 PATTERN = '.*(.+\.pt)$'
 
-def move_data(datapath, train_p=0.6, val_p=0.1, test_p=0.3, train_name='train', test_name='test', validation_name='validation'):
+def move_data(datapath, train_p=None, val_p=None, test_p=None, train_name='train', test_name='test', validation_name='validation'):
     datapath = os.path.abspath(datapath)
     assert abs(1 - train_p - val_p - test_p) < 1e-5, 'Percentage must sum to 1'
     files = [f for f in os.listdir(datapath) if re.search(PATTERN, f) is not None and os.path.isfile(os.path.join(datapath, f))]
@@ -133,9 +133,4 @@ def b_search(map, start, goal, to_torch=True):
 
 
 if __name__ == '__main__':
-    move_data('map_dataset', 1)
-    # chunk_data('map_dataset/train')
-    # files = []
-    # for file in collect_files('map_dataset/train'):
-    #     files.append(file)
-    # print(len(files))
+    move_data('map_dataset', 0.35, 0.05, 0.6)
