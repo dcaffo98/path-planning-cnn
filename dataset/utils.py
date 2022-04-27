@@ -59,16 +59,22 @@ def collect_files(datapath):
                 yield nested_entry
 
 def custom_collate_fn(batch):
-    maps = torch.stack([sample.map for sample in batch]).unsqueeze(1)
-    starts = torch.stack([sample.start for sample in batch])
-    goals = torch.stack([sample.goal for sample in batch])
+    maps = torch.stack([sample[0].map for sample in batch]).unsqueeze(1)
+    starts = torch.stack([sample[0].start for sample in batch])
+    goals = torch.stack([sample[0].goal for sample in batch])
     paths = []
-    for sample in batch:
+    for s in batch:
+        sample = s[0]
         path = torch.zeros_like(sample.map, dtype=sample.map.dtype)
         path[sample.path[:, 0], sample.path[:, 1]] = 1.0
         paths.append(path)
     paths = torch.stack(paths)
     return maps, starts, goals, paths
+
+def custom_collate_fn_extended(batch):
+    filenames = [sample[1] for sample in batch]
+    path_array = [sample[0].path for sample in batch]
+    return *custom_collate_fn(batch), filenames, path_array
 
 def get_grid(h, w, to_torch=True):
     coords = np.mgrid[0:h, 0:w].reshape(2, -1)
