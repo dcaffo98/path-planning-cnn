@@ -2,12 +2,12 @@ import torch
 from torch import nn
 from dataset.map_sample import MapSample
 from img_processing.gaussian_kernel import get_gaussian
-from model.pe import GaussianRelativePE, PositionalEncoding
+from model.pe import GaussianRelativePE
 
-class SPFNet(nn.Module):
+class OACNet(nn.Module):
 
     def __init__(self, n_layers=3, gaussian_blur_kernel=0):
-        super(SPFNet, self).__init__()
+        super(OACNet, self).__init__()
         
         class _conv_block_down(nn.Module):
             def __init__(self, in_channels, out_channels, activation=None, norm_first=False, is_first=False, init_in_channel=1):
@@ -117,7 +117,7 @@ class SPFNet(nn.Module):
 
 
 if __name__ == '__main__':
-    model = SPFNet(3)
+    model = OACNet(3)
     path = 'map_dataset/validation/0a2ae4a1-72e8-4daf-9b29-dcd6a24b5af6.pt'
     sample = MapSample.load(path)
     import cv2

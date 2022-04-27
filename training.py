@@ -4,7 +4,7 @@ from dataset.map_sample import MapSample
 from model.checkpoint import Checkpoint
 from torch.nn.modules.loss import MSELoss, L1Loss
 from dataset.map_dataset import MapDataset
-from model.spfnet import SPFNet
+from model.oacnet import OACNet
 from dataset.utils import b_search, custom_collate_fn
 import torch
 from torch.utils.data import DataLoader
@@ -17,8 +17,8 @@ from matplotlib import pyplot as plt
 from lr_scheduler.scheduler import CosineAnnealingWarmRestartsDecay
 
 
-TRAIN = 'map_dataset/train'
-VALIDATION = 'map_dataset/validation'
+TRAIN = 'map_dataset_test_of/train'
+VALIDATION = 'map_dataset_test_of/validation'
 EPOCHS = 100
 SAVE_EVERY = 5
 SHOW_EVERY = 100
@@ -129,7 +129,7 @@ def visualize_results(path):
 def main(epochs=EPOCHS, device=DEVICE):
     if not os.path.exists(os.path.abspath('checkpoints')):
         os.mkdir(os.path.abspath('checkpoints'))
-    model = SPFNet(gaussian_blur_kernel=3).to(device)
+    model = OACNet(gaussian_blur_kernel=3).to(device)
     dataset = MapDataset(TRAIN)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, collate_fn=custom_collate_fn, pin_memory=True)
     val_dataset = MapDataset(VALIDATION)
