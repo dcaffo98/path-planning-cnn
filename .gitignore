@@ -7,3 +7,7 @@ __pycache__
 *.pyc
 dataset/dataset_converter.py
 checkpoints/*
+*.pt
+*.npy
+*.csv
+dataset/stats
