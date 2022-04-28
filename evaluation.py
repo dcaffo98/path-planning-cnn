@@ -15,7 +15,7 @@ import pandas as pd
 
 TEST = 'map_dataset_test_of/test'
 CHECKPOINT = 'checkpoint_new_min_23.pt'
-RESULTS_PATH = 'model_result_evaluation'
+RESULTS_PATH = 'model_results_evaluation'
 
 if __name__ ==  '__main__':
     if not os.path.exists(os.path.abspath(RESULTS_PATH)):

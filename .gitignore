@@ -1,6 +1,7 @@
 map_dataset/*
 map_dataset*
 model_results/*
+model_results*
 venv
 .vscode
 __pycache__

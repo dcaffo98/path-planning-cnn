@@ -9,47 +9,22 @@ class OACNet(nn.Module):
     def __init__(self, n_layers=3, gaussian_blur_kernel=0):
         super(OACNet, self).__init__()
         
-        class _conv_block_down(nn.Module):
-            def __init__(self, in_channels, out_channels, activation=None, norm_first=False, is_first=False, init_in_channel=1):
-                super(_conv_block_down, self).__init__()
+        class _conv_block(nn.Module):
+            def __init__(self, in_channels, out_channels, activation=None, norm_first=False, transpose=False, last_output_padding=0):
+                super(_conv_block, self).__init__()
                 self.activation = activation if activation is not None else nn.ReLU()
                 self.bn1 = nn.BatchNorm2d(out_channels)
                 self.bn2 = nn.BatchNorm2d(out_channels)
-                self.bn3 = nn.BatchNorm2d(out_channels * 2)
-                if is_first:
-                    self.conv1 = nn.Conv2d(init_in_channel, out_channels, 3)
+                if transpose:               
+                    self.bn3 = nn.BatchNorm2d(out_channels // 2)     
+                    self.conv1 = nn.ConvTranspose2d(in_channels, out_channels, 3)
+                    self.conv2 = nn.ConvTranspose2d(out_channels, out_channels, 3)
+                    self.conv3 = nn.ConvTranspose2d(out_channels, out_channels // 2, 3, stride=2, padding=2, output_padding=last_output_padding)
                 else:
+                    self.bn3 = nn.BatchNorm2d(out_channels * 2)
                     self.conv1 = nn.Conv2d(in_channels, out_channels, 3)
-                self.conv2 = nn.Conv2d(in_channels, out_channels, 3)
-                self.conv3 = nn.Conv2d(in_channels, out_channels * 2, 3, stride=2)
-                if norm_first:
-                    self._fw = nn.Sequential(
-                        self.conv1, self.bn1, self.activation, 
-                        self.conv2, self.bn2, self.activation,
-                        self.conv3, self.bn3, self.activation)
-                else:
-                    self._fw = nn.Sequential(
-                        self.conv1, self.activation, self.bn1,
-                        self.conv2, self.activation, self.bn2,
-                        self.conv3, self.activation, self.bn3)
-        
-            def forward(self, x):
-                return self._fw(x)
-
-
-        class _conv_block_up(nn.Module):
-            def __init__(self, in_channels, out_channels, activation=None, norm_first=False, is_last=False):
-                super(_conv_block_up, self).__init__()
-                self.activation = activation if activation is not None else nn.ReLU()
-                self.bn1 = nn.BatchNorm2d(out_channels)
-                self.bn2 = nn.BatchNorm2d(out_channels)
-                self.bn3 = nn.BatchNorm2d(out_channels // 2)
-                self.conv1 = nn.ConvTranspose2d(in_channels, out_channels, 3)
-                self.conv2 = nn.ConvTranspose2d(in_channels, out_channels, 3)
-                if is_last:
-                    self.conv3 = nn.ConvTranspose2d(in_channels, out_channels // 2, 3, stride=2, padding=2, output_padding=1)
-                else:
-                    self.conv3 = nn.ConvTranspose2d(in_channels, out_channels // 2, 3, stride=2, padding=2)
+                    self.conv2 = nn.Conv2d(out_channels, out_channels, 3)
+                    self.conv3 = nn.Conv2d(out_channels, out_channels * 2, 3, stride=2)
                 if norm_first:
                     self._fw = nn.Sequential(
                         self.conv1, self.bn1, self.activation, 
@@ -74,8 +49,8 @@ class OACNet(nn.Module):
         self.pe = GaussianRelativePE(100)
         self.sigm = nn.Sigmoid()
         n_channels = [64 * (2 ** i) for i in range(n_layers)]
-        self.conv_down = nn.ModuleList([_conv_block_down(c, c, is_first=True if i == 0 else False, init_in_channel=3) for i, c in enumerate(n_channels)])
-        self.conv_up = nn.ModuleList([_conv_block_up(2 * c, 2 * c, is_last=True if i == len(n_channels) - 1 else False) for i, c in enumerate(n_channels[::-1])])
+        self.conv_down = nn.ModuleList([_conv_block(c if i > 0 else 3, c) for i, c in enumerate(n_channels)])
+        self.conv_up = nn.ModuleList([_conv_block(2 * c, 2 * c, transpose=True, last_output_padding=1 if i == len(n_channels) - 1 else 0) for i, c in enumerate(n_channels[::-1])])
         self.bottleneck = nn.Conv2d(64, 1, 3, padding=1)
         self.conv_out = nn.Conv2d(1, 1, kernel_size=3, padding=1)
 
