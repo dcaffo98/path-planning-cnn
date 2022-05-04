@@ -4,10 +4,10 @@ from dataset.map_sample import MapSample
 from img_processing.gaussian_kernel import get_gaussian
 from model.pe import GaussianRelativePE
 
-class OACNet(nn.Module):
-
+class PPCNet(nn.Module):
+    """ Path Planning CNN Network """    
     def __init__(self, n_layers=3, gaussian_blur_kernel=0):
-        super(OACNet, self).__init__()
+        super(PPCNet, self).__init__()
         
         class _conv_block(nn.Module):
             def __init__(self, in_channels, out_channels, activation=None, norm_first=False, transpose=False, last_output_padding=0):
@@ -92,7 +92,7 @@ class OACNet(nn.Module):
 
 
 if __name__ == '__main__':
-    model = OACNet(3)
+    model = PPCNet(3)
     path = 'map_dataset/validation/0a2ae4a1-72e8-4daf-9b29-dcd6a24b5af6.pt'
     sample = MapSample.load(path)
     import cv2

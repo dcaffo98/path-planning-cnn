@@ -3,7 +3,7 @@ import numpy as np
 import os
 from dataset.map_dataset import MapDataset
 from dataset.map_sample import MapSample
-from model.oacnet import OACNet
+from model.ppcnet import PPCNet
 from dataset.utils import b_search, custom_collate_fn_extended
 import torch
 from torch.utils.data import DataLoader
@@ -21,7 +21,7 @@ if __name__ ==  '__main__':
     if not os.path.exists(os.path.abspath(RESULTS_PATH)):
         os.mkdir(os.path.abspath(RESULTS_PATH))
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    model = OACNet().to(device)
+    model = PPCNet().to(device)
     if CHECKPOINT:
         Checkpoint.load_checkpoint(CHECKPOINT, model)
     dataset = MapDataset(TEST, lazy=True)

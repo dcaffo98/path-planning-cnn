@@ -4,7 +4,7 @@ from dataset.map_sample import MapSample
 from model.checkpoint import Checkpoint
 from torch.nn.modules.loss import MSELoss, L1Loss
 from dataset.map_dataset import MapDataset
-from model.oacnet import OACNet
+from model.ppcnet import PPCNet
 from dataset.utils import b_search, custom_collate_fn
 import torch
 from torch.utils.data import DataLoader
@@ -129,7 +129,7 @@ def visualize_results(path):
 def main(epochs=EPOCHS, device=DEVICE):
     if not os.path.exists(os.path.abspath('checkpoints')):
         os.mkdir(os.path.abspath('checkpoints'))
-    model = OACNet(gaussian_blur_kernel=3).to(device)
+    model = PPCNet(gaussian_blur_kernel=3).to(device)
     dataset = MapDataset(TRAIN)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, collate_fn=custom_collate_fn, pin_memory=True)
     val_dataset = MapDataset(VALIDATION)

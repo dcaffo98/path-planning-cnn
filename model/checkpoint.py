@@ -50,9 +50,9 @@ class Checkpoint(object):
     
 if __name__ == '__main__':
     # Checkpoint.save(None, None, None, None, None, None, foo='qwerty', xxx=3)
-    from model import OACNet
+    from model import PPCNet
     from torch.optim import Adam
-    model = OACNet().to('cuda:0')
+    model = PPCNet().to('cuda:0')
     optimizer = Adam(model.parameters())
     Checkpoint.load_checkpoint('checkpoints/checkpoint_5.pt', model,optimizer)
         
