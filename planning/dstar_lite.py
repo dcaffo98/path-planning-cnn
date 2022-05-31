@@ -88,8 +88,6 @@ class DStarLite:
         self.goal = np.array([x_goal, y_goal])
         self._goal = self.goal.copy()
         self.global_map = map
-        if obst_margin == 0:
-            raise ValueError('\'margin\' must be a strictly positive integer')
         self.obst_margin = obst_margin
         self.goal_margin = goal_margin
         self.manage_goal()
