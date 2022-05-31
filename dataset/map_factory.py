@@ -3,7 +3,8 @@ import cv2
 from random import choice
 try:
     from planning.cpp_dstar_lite import DStarLite
-except ImportError:
+except ImportError as e:
+    print(e)
     print('Cannot import D* Lite implementation in c++. Let\'s try with the python one.')
     from planning.dstar_lite import DStarLite
 from dataset.map_sample import MapSample
@@ -45,7 +46,7 @@ class MapFactory(object):
     def random_start_goal(maze, min_dist):
         h, w = maze.shape
         max_it = h * w
-        start, goal = np.array([[0], [0]], dtype=np.int), np.array([[0], [0]], dtype=np.int)
+        start, goal = np.array([[0], [0]], dtype=np.int64), np.array([[0], [0]], dtype=np.int)
         i = 0
         while np.linalg.norm(start - goal) < min_dist and i < max_it:
             x = np.random.randint(0, h, size=(2, 1), dtype=np.int64)   # rows
@@ -101,7 +102,7 @@ class MapFactory(object):
 if __name__ == '__main__':
     solved, sample = False, None
     while not solved:
-        solved, sample = MapFactory.make_sample(100, 100, 70, 10000, 1, 1)
+        solved, sample = MapFactory.make_sample(100, 100, 70, 10000, 0, 1)
     bgr = sample.bgr_map()
     cv2.imshow('map', cv2.resize(bgr, (500, 500)))
     cv2.waitKey(0)
