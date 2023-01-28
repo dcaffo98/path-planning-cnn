@@ -1,6 +1,9 @@
 # path-planning-cnn
 Experimenting a CNN to solve 2d path-planning problems.
-![activations-2](https://user-images.githubusercontent.com/54015844/215257067-5fbf05c8-e445-46c3-b90d-c7fe7ef6d5ba.png)
+
+<br>
+
+![activations-2-cropped](https://user-images.githubusercontent.com/54015844/215270483-54e6cbe4-327a-4f40-997d-cc8d681286fc.png)
 
 <br>
 <br>
