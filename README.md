@@ -1,5 +1,5 @@
 # path-planning-cnn
-Experimenting a CNN to solve 2d path-planning problems.
+Solving synthetic 2d path-planning problems with a CNN.
 
 <br>
 
